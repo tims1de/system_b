@@ -9,6 +9,7 @@ from app.crypto.codec import decode_base64, encode_base64
 from app.storage.unit_of_work import UnitOfWork
 from app.storage.models import TransactionModel
 from app.config.settings import settings
+from app.schemas.search import SearchRequest
 
 
 class MessageService:
@@ -87,3 +88,77 @@ class MessageService:
             Sign=sign_envelope(base64_response),
             SignerCert=encode_base64(settings.SYSTEM_NAME)
         )
+
+    @staticmethod
+    async def process_outgoing(signed_data: SignedApiData, uow: UnitOfWork) -> SignedApiData:
+        """
+        Алгоритм 3.2: Выдача исходящих сообщений.
+        1. Проверка подписи конверта.
+        2. Декодирование SearchRequest (StartDate, EndDate, Limit, Offset).
+        3. Фильтрация и пагинация транзакций из БД.
+        4. Упаковка ответа в TransactionsData -> SignedApiData.
+        """
+        # Проверка подписи конверта
+        if not verify_envelope_sign(signed_data.Data, signed_data.Sign):
+            raise ValueError("Invalid envelope signature")
+            
+        # Декодирование SearchRequest
+        try:
+            json_str = decode_base64(signed_data.Data)
+            data_dict = json.loads(json_str)
+            search_request = SearchRequest(**data_dict)
+        except Exception as e:
+            raise ValueError(f"Invalid search request data format: {e}")
+
+        # Получение транзакций из БД
+        async with uow:
+            db_transactions = await uow.transactions.get_filtered(
+                start_date=search_request.StartDate,
+                end_date=search_request.EndDate,
+                limit=1000,
+                offset=0
+            )
+
+        processed_transactions: List[Transaction] = []
+        
+        for tx_model in db_transactions:
+            tx_schema = Transaction(
+                TransactionType=tx_model.transaction_type,
+                Data=tx_model.data,
+                Hash=tx_model.hash,
+                Sign=tx_model.sign,
+                SignerCert=tx_model.signer_cert,
+                TransactionTime=tx_model.transaction_time.isoformat(),
+                Metadata=tx_model.metadata_info,
+                TransactionIn=tx_model.transaction_in,
+                TransactionOut=tx_model.transaction_out
+            )
+            
+            # Фильтрация по ReceiverBranch = "SYSTEM_A" для информационных сообщений (Type=9)
+            if tx_schema.TransactionType == 9:
+                try:
+                    msg_json_str = decode_base64(tx_schema.Data)
+                    msg_dict = json.loads(msg_json_str)
+                    if msg_dict.get("ReceiverBranch") != "SYSTEM_A":
+                        continue
+                except:
+                    pass
+            
+            processed_transactions.append(tx_schema)
+            
+        # Применение пагинации (Limit, Offset)
+        paginated_transactions = processed_transactions[search_request.Offset : search_request.Offset + search_request.Limit]
+
+        response_payload = TransactionsData(
+            Transactions=paginated_transactions,
+            Count=len(paginated_transactions)
+        )
+        json_response = response_payload.model_dump_json()
+        base64_response = encode_base64(json_response)
+        
+        return SignedApiData(
+            Data=base64_response,
+            Sign=sign_envelope(base64_response),
+            SignerCert=encode_base64(settings.SYSTEM_NAME)
+        )
+

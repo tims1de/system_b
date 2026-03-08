@@ -23,3 +23,16 @@ async def incoming_messages(
         raise HTTPException(status_code=400, detail=str(e))
     except Exception:
         raise HTTPException(status_code=500, detail="Internal server error")
+
+@router.post("/messages/outgoing", response_model=SignedApiData)
+async def outgoing_messages(
+    signed_data: SignedApiData,
+    uow: UnitOfWork = Depends(UnitOfWork)
+):
+    """Выдача исходящих транзакций по запросу (SearchRequest)."""
+    try:
+        return await MessageService.process_outgoing(signed_data, uow)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception:
+        raise HTTPException(status_code=500, detail="Internal server error")

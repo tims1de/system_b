@@ -1,7 +1,7 @@
 from typing import TypeVar, Generic, Type, List, Optional
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-from app.storage.models import Base
+from app.storage.models import Base, TransactionModel
 
 T = TypeVar("T", bound=Base)
 
@@ -29,7 +29,6 @@ class BaseRepository(Generic[T]):
 class TransactionRepository(BaseRepository):
     """Репозиторий для работы с транзакциями"""
     def __init__(self, session: AsyncSession):
-        from app.storage.models import TransactionModel
         super().__init__(TransactionModel, session)
 
     async def get_by_hash(self, tx_hash: str):

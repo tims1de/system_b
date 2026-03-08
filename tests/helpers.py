@@ -39,3 +39,21 @@ def generate_valid_payload(doc_id: str, timestamp_str: str) -> dict:
     }
     
     return signed_api_data
+
+def generate_search_payload(start_date: str, end_date: str, limit: int, offset: int) -> dict:
+    search_req = {
+        "StartDate": start_date,
+        "EndDate": end_date,
+        "Limit": limit,
+        "Offset": offset
+    }
+    json_search = json.dumps(search_req)
+    base64_payload = encode_base64(json_search)
+    
+    signed_api_data = {
+        "Data": base64_payload,
+        "Sign": sign_envelope(base64_payload),
+        "SignerCert": encode_base64("SYSTEM_A")
+    }
+    
+    return signed_api_data
