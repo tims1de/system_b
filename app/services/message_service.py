@@ -10,6 +10,7 @@ from app.storage.unit_of_work import UnitOfWork
 from app.storage.models import TransactionModel
 from app.config.settings import settings
 from app.schemas.search import SearchRequest
+from app.services.receipt_service import ReceiptService
 
 
 class MessageService:
@@ -68,6 +69,25 @@ class MessageService:
                 )
                 await uow.transactions.add(tx_model)
                 processed_transactions.append(tx_schema)
+
+            # Генерация квитков (215)
+            receipt_transactions = ReceiptService.generate_receipts(processed_transactions)
+            
+            # Сохраняем квитки в БД
+            for receipt_tx in receipt_transactions:
+                receipt_model = TransactionModel(
+                    transaction_type=receipt_tx.TransactionType,
+                    data=receipt_tx.Data,
+                    hash=receipt_tx.Hash,
+                    sign=receipt_tx.Sign,
+                    signer_cert=receipt_tx.SignerCert,
+                    transaction_time=receipt_tx.TransactionTime,
+                    metadata_info=receipt_tx.Metadata,
+                    transaction_in=receipt_tx.TransactionIn,
+                    transaction_out=receipt_tx.TransactionOut
+                )
+                await uow.transactions.add(receipt_model)
+                processed_transactions.append(receipt_tx)
 
             try:
                 await uow.commit()

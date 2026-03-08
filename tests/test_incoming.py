@@ -3,7 +3,7 @@ import json
 from app.schemas.signed_api_data import SignedApiData
 from app.crypto.hasher import calculate_hash
 from app.crypto.signer import sign_transaction, sign_envelope
-from app.crypto.codec import encode_base64
+from app.crypto.codec import encode_base64, decode_base64
 from tests.helpers import generate_valid_payload
 
 @pytest.mark.asyncio
@@ -17,6 +17,18 @@ async def test_incoming_messages_full_cycle(client):
     resp_body = response.json()
     assert "Sign" in resp_body
     assert resp_body["Sign"] != ""
+    
+    # Проверка на наличие сгенерированного квитка
+    out_data = json.loads(decode_base64(resp_body["Data"]))
+    assert out_data["Count"] == 2
+    assert len(out_data["Transactions"]) == 2
+    
+    # Вторая транзакция должна быть квитком от SYSTEM_B
+    receipt_tx = out_data["Transactions"][1]
+    receipt_msg = json.loads(decode_base64(receipt_tx["Data"]))
+    assert receipt_msg["InfoMessageType"] == 215
+    assert receipt_msg["SenderBranch"] == "SYSTEM_B"
+
 
 
 @pytest.mark.asyncio

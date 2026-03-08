@@ -2,15 +2,53 @@ import json
 from app.crypto.hasher import calculate_hash
 from app.crypto.signer import sign_transaction, sign_envelope
 from app.crypto.codec import encode_base64
+from app.config.settings import settings
 
 
-def generate_valid_payload(doc_id: str, timestamp_str: str) -> dict:
-    doc_content = {"DocumentID": doc_id, "Content": "Test Content"}
+from uuid import uuid4
+
+def generate_valid_payload(doc_id: str, timestamp_str: str) -> dict:    
+    # 3-й уровень вложенности: Документ (Гарантия 201)
+    doc_content = {
+        "InformationType": 201,
+        "InformationTypeString": "Выдача гарантии",
+        "Number": doc_id,
+        "IssuedDate": timestamp_str,
+        "Guarantor": "Test Guarantor",
+        "Beneficiary": "Test Beneficiary",
+        "Principal": "Test Principal",
+        "Obligations": [],
+        "StartDate": timestamp_str,
+        "EndDate": timestamp_str,
+        "CurrencyCode": "RUB",
+        "CurrencyName": "Российский рубль",
+        "Amount": 1000.50,
+        "RevokationInfo": "None",
+        "ClaimRightTransfer": "None",
+        "PaymentPeriod": "30 days",
+        "SignerName": "Ivanov I.I.",
+        "AuthorizedPosition": "Director",
+        "BankGuaranteeHash": f"HASH-{doc_id}" # Важно для генерации квитка 215
+    }
     doc_base64 = encode_base64(json.dumps(doc_content))
     
-    tx_raw = {
-        "TransactionType": 201,
+    # 2-й уровень вложенности: Message
+    msg_content = {
         "Data": doc_base64,
+        "SenderBranch": "SYSTEM_A",
+        "ReceiverBranch": settings.SYSTEM_NAME, # SYSTEM_B
+        "InfoMessageType": 201,
+        "MessageTime": timestamp_str,
+        "ChainGuid": str(uuid4()),
+        "PreviousTransactionHash": None,
+        "Metadata": None
+    }
+    msg_base64 = encode_base64(json.dumps(msg_content))
+    
+    # 1-й уровень вложенности: Transaction
+    tx_raw = {
+        "TransactionType": 9, # 9 = информационное сообщение
+        "Data": msg_base64,
         "SignerCert": encode_base64("SYSTEM_A"),
         "TransactionTime": timestamp_str,
         "Metadata": None,
