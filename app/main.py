@@ -6,6 +6,7 @@ from app.config.settings import settings
 from app.storage.database import engine
 from app.storage.models import Base
 from app.services.seed_service import seed_test_data
+from app.storage.unit_of_work import UnitOfWork
 
 
 @asynccontextmanager
