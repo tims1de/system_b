@@ -13,13 +13,13 @@ class UnitOfWork:
         self._session_factory = async_session_factory
         self.session: Optional[AsyncSession] = None
         
-        # Репозитории
         self.transactions: Optional[TransactionRepository] = None
 
     async def __aenter__(self):
         """Вход в контекстный менеджер: создание сессии и репозиториев"""
-        self.session = self._session_factory()
-        self.transactions = TransactionRepository(self.session)
+        if self.session is None:
+            self.session = self._session_factory()
+            self.transactions = TransactionRepository(self.session)
         return self
 
     async def __aexit__(self, exc_type, exc_val, exc_tb):

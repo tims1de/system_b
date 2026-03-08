@@ -2,30 +2,20 @@ import os
 import pytest
 from httpx import ASGITransport, AsyncClient
 
-# Устанавливаем режим тестирования до импорта настроек или приложения
 os.environ["MODE"] = "TEST"
 
 from app.main import create_app
-from sqlalchemy import text
 from app.storage.database import engine
 from app.storage.models import Base
-
-
-@pytest.fixture(scope="session", autouse=True)
-async def init_db():
-    """Создание таблиц в тестовой БД один раз за сессию."""
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
-    yield
-    await engine.dispose()
+from app.storage.unit_of_work import UnitOfWork
 
 
 @pytest.fixture(autouse=True)
-async def clear_db():
-    """Очистка всех таблиц перед каждым тестом для изоляции."""
+async def init_db():
+    """Очистка и создание таблиц в тестовой БД перед КАЖДЫМ тестом."""
     async with engine.begin() as conn:
-        # Для SQLite отключаем внешние ключи на время очистки, если нужно
-        await conn.execute(text("DELETE FROM transactions"))
+        await conn.run_sync(Base.metadata.drop_all)
+        await conn.run_sync(Base.metadata.create_all)
     yield
 
 
@@ -38,9 +28,12 @@ def app():
 @pytest.fixture()
 async def client(app):
     """Async HTTP client for testing FastAPI endpoints."""
-    # Для срабатывания lifespan в httpx/FastAPI
-    async with AsyncClient(
-        transport=ASGITransport(app=app), 
-        base_url="http://test"
-    ) as ac:
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as ac:
         yield ac
+
+@pytest.fixture()
+async def uow():
+    """Фикстура для UnitOfWork, готового к использованию."""
+    async with UnitOfWork() as uow_obj:
+        yield uow_obj

@@ -5,6 +5,7 @@ from app.api.routes import router
 from app.config.settings import settings
 from app.storage.database import engine
 from app.storage.models import Base
+from app.services.seed_service import seed_test_data
 
 
 @asynccontextmanager
@@ -12,10 +13,9 @@ async def lifespan(app: FastAPI):
     """Жизненный цикл приложения: инициализация ресурсов"""
     # Создаем таблицы в БД при старте (для SQLite/DEV)
     async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
+        await conn.run_sync(Base.metadata.create_all)    
+    await seed_test_data(UnitOfWork())
     yield
-    # Очистка ресурсов при выключении (если нужно)
-    await engine.dispose()
 
 
 def create_app() -> FastAPI:
