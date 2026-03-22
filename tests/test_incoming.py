@@ -1,6 +1,5 @@
 import pytest
 import json
-from app.schemas.signed_api_data import SignedApiData
 from app.crypto.hasher import calculate_hash
 from app.crypto.signer import sign_transaction, sign_envelope
 from app.crypto.codec import encode_base64, decode_base64

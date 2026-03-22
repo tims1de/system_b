@@ -1,7 +1,6 @@
 import json
 from datetime import datetime, timezone
 from typing import List
-from uuid import uuid4
 
 from app.schemas.transaction import Transaction
 from app.schemas.message import Message
@@ -25,7 +24,7 @@ class ReceiptService:
                 continue
                 
             try:
-                # 1. Извлекаем Message
+                # Извлекаем Message
                 msg_json_str = decode_base64(inc_tx.Data)
                 msg_dict = json.loads(msg_json_str)
                 message = Message(**msg_dict)
@@ -34,33 +33,31 @@ class ReceiptService:
                 if message.InfoMessageType == 215:
                     continue
                 
-                # 2. Получаем BankGuaranteeHash из внутреннего документа
+                # Получаем BankGuaranteeHash из внутреннего документа
                 doc_json_str = decode_base64(message.Data)
                 doc_dict = json.loads(doc_json_str)
-                # BankGuaranteeHash есть почти во всех 201, 202, 203
                 bg_hash = doc_dict.get("BankGuaranteeHash")
                 if not bg_hash:
-                    # Если вдруг хэша гарантии нет, квиток сформировать не можем
                     continue
                 
-                # 3. Формируем Receipt215 документ
+                # Формируем Receipt215 документ
                 receipt_doc = Receipt215(BankGuaranteeHash=bg_hash)
                 receipt_doc_base64 = encode_base64(receipt_doc.model_dump_json())
                 
-                # 4. Формируем Message для квитка
+                # Формируем Message для квитка
                 receipt_msg = Message(
                     Data=receipt_doc_base64,
                     SenderBranch=settings.SYSTEM_NAME,  # SYSTEM_B
                     ReceiverBranch=message.SenderBranch, # SYSTEM_A
                     InfoMessageType=215,
                     MessageTime=datetime.now(timezone.utc).isoformat(),
-                    ChainGuid=message.ChainGuid, # Тот же ChainGuid
+                    ChainGuid=message.ChainGuid,
                     PreviousTransactionHash=inc_tx.Hash,
                     Metadata=None
                 )
                 receipt_msg_base64 = encode_base64(receipt_msg.model_dump_json())
                 
-                # 5. Упаковываем в Transaction
+                # Упаковываем в Transaction
                 receipt_tx_raw = {
                     "TransactionType": 9,
                     "Data": receipt_msg_base64,
@@ -71,11 +68,11 @@ class ReceiptService:
                     "TransactionOut": None
                 }
                 
-                # 6. Хэшируем и подписываем квиток
+                # Хэшируем и подписываем квиток
                 tx_hash = calculate_hash(receipt_tx_raw)
                 tx_sign = sign_transaction(tx_hash)
                 
-                # 7. Финальный Transaction
+                # Финальный Transaction
                 receipt_tx = Transaction(
                     TransactionType=9,
                     Data=receipt_msg_base64,
@@ -90,9 +87,7 @@ class ReceiptService:
                 
                 receipt_transactions.append(receipt_tx)
                 
-            except Exception as e:
-                # Если невозможно распаковать/получить UUID, просто пропускаем генерацию квитка
-                print(f"Failed to generate receipt: {e}")
+            except Exception:
                 continue
                 
         return receipt_transactions

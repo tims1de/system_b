@@ -15,7 +15,6 @@ def calculate_hash(data: Dict[str, Any]) -> str:
     payload["Hash"] = ""
     payload["Sign"] = ""
 
-    # Сериализация: компактный вид, сортировка полей для стабильности хэша
     json_str = json.dumps(payload, separators=(",", ":"), sort_keys=True, ensure_ascii=False)
     
     hash_object = hashlib.sha256(json_str.encode("utf-8"))

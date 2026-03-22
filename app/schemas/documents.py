@@ -1,10 +1,10 @@
 from datetime import datetime
-from typing import List, Optional
+from typing import List
 from pydantic import BaseModel
 
 
 class Taxs(BaseModel):
-    """Таблица 6. Сведения о налогах"""
+    """Сведения о налогах"""
     Number: str
     NameTax: str
     Amount: float
@@ -12,7 +12,7 @@ class Taxs(BaseModel):
 
 
 class Obligation(BaseModel):
-    """Таблица 5. Сведения об обязательстве"""
+    """Сведения об обязательстве"""
     Type: int
     StartDate: datetime
     EndDate: datetime
@@ -22,7 +22,7 @@ class Obligation(BaseModel):
 
 
 class Guarantee201(BaseModel):
-    """Таблица 4. Сообщение о выдаче гарантии (201)"""
+    """Сообщение о выдаче гарантии (201)"""
     InformationType: int = 201
     InformationTypeString: str = "Выдача гарантии"
     Number: str
@@ -45,7 +45,7 @@ class Guarantee201(BaseModel):
 
 
 class Acceptance202(BaseModel):
-    """Таблица 7. Сообщение о принятии гарантии (202)"""
+    """Сообщение о принятии гарантии (202)"""
     Name: str
     BankGuaranteeHash: str
     Sign: str
@@ -53,7 +53,7 @@ class Acceptance202(BaseModel):
 
 
 class Rejection203(BaseModel):
-    """Таблица 8. Сообщение об отказе в принятии гарантии (203)"""
+    """Сообщение об отказе в принятии гарантии (203)"""
     Name: str
     BankGuaranteeHash: str
     Sign: str
@@ -62,5 +62,5 @@ class Rejection203(BaseModel):
 
 
 class Receipt215(BaseModel):
-    """Таблица 11. Квиток (215)"""
+    """Квиток (215)"""
     BankGuaranteeHash: str

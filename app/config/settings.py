@@ -8,10 +8,7 @@ class AppSettings(BaseSettings):
     APP_DESCRIPTION: str
     APP_VERSION: str
 
-    model_config = SettingsConfigDict(
-        env_file=".env",
-        extra="ignore"
-    )
+    model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
 
 class DatabaseSettings(BaseSettings):
@@ -43,10 +40,7 @@ class DatabaseSettings(BaseSettings):
             return self.test_database_url
         return self.database_url
 
-    model_config = SettingsConfigDict(
-        env_file=".env",
-        extra="ignore"
-    )
+    model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
 
 class Settings(AppSettings, DatabaseSettings):

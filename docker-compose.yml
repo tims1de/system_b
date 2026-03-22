@@ -8,10 +8,7 @@ services:
       - .env
     volumes:
       - ./data:/app/data
-      # Монтируем файл БД отдельно, чтобы он сохранялся между перезапусками
-      # В .env DB_NAME должен указывать на /app/data/system_b.db для корректной работы
     restart: always
 
-# Для SQLite мы используем локальный volume
 volumes:
   sqlite_data:

@@ -8,6 +8,7 @@ from app.config.settings import settings
 from uuid import uuid4
 
 def generate_valid_payload(doc_id: str, timestamp_str: str) -> dict:    
+    
     # 3-й уровень вложенности: Документ (Гарантия 201)
     doc_content = {
         "InformationType": 201,
@@ -47,7 +48,7 @@ def generate_valid_payload(doc_id: str, timestamp_str: str) -> dict:
     
     # 1-й уровень вложенности: Transaction
     tx_raw = {
-        "TransactionType": 9, # 9 = информационное сообщение
+        "TransactionType": 9,
         "Data": msg_base64,
         "SignerCert": encode_base64("SYSTEM_A"),
         "TransactionTime": timestamp_str,

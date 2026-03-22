@@ -11,15 +11,14 @@ class Base(DeclarativeBase):
 
 class TransactionModel(Base):
     """
-    Модель транзакции в базе данных.
-    Соответствует Таблице 2 из ТЗ.
+    Модель транзакции
     """
     __tablename__ = "transactions"
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     
     transaction_type: Mapped[int] = mapped_column(Integer, nullable=False)
-    data: Mapped[str] = mapped_column(String, nullable=False)  # Base64 Message
+    data: Mapped[str] = mapped_column(String, nullable=False)
     hash: Mapped[str] = mapped_column(String(64), unique=True, nullable=False, index=True)
     sign: Mapped[str] = mapped_column(String, nullable=False)
     signer_cert: Mapped[str] = mapped_column(String, nullable=False)

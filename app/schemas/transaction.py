@@ -4,7 +4,7 @@ from pydantic import BaseModel
 
 
 class Transaction(BaseModel):
-    """Таблица 2. Транзакция — единица хранения в реестре"""
+    """Транзакция"""
     TransactionType: int
     Data: str
     Hash: str
@@ -17,6 +17,6 @@ class Transaction(BaseModel):
 
 
 class TransactionsData(BaseModel):
-    """Таблица 9. Ответ со списком транзакций / Тело запроса incoming"""
+    """Ответ со списком транзакций / Тело запроса incoming"""
     Transactions: List[Transaction]
     Count: int

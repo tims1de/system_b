@@ -1,15 +1,9 @@
 import pytest
-import json
-from datetime import datetime
-from app.schemas.signed_api_data import SignedApiData
-from app.crypto.hasher import calculate_hash
-from app.crypto.signer import sign_transaction, sign_envelope
-from app.crypto.codec import encode_base64, decode_base64
 from tests.helpers import generate_valid_payload, generate_search_payload
 
-@pytest.mark.asyncio
+@pytest
 async def test_outgoing_messages_success(client):
-    """Интеграционный тест: создание транзакции и последующий её поиск через /api/messages/outgoing"""
+    """Cоздание транзакции и последующий её поиск через /api/messages/outgoing"""
     # Сначала отправляем транзакцию
     tx_time_str = "2024-03-08T15:00:00"
     payload_in = generate_valid_payload("MSG-OUTGOING-1", tx_time_str)
@@ -34,7 +28,7 @@ async def test_outgoing_messages_success(client):
     assert "Data" in resp_body
 
 
-@pytest.mark.asyncio
+@pytest
 async def test_outgoing_messages_invalid_signature(client):
     """Проверка ошибки 400 при отправке поиска с невалидной подписью."""
     payload = generate_search_payload(

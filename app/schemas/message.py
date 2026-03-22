@@ -5,7 +5,7 @@ from pydantic import BaseModel
 
 
 class Message(BaseModel):
-    """Таблица 3. Информационное сообщение (уровень 2)"""
+    """Информационное сообщение"""
     Data: str
     SenderBranch: str
     ReceiverBranch: str

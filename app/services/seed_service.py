@@ -16,7 +16,6 @@ async def seed_test_data(uow: UnitOfWork = Depends(UnitOfWork)) -> None:
         if len(existing) > 0:
             return
 
-        print("Seeding initial test data...")
         now = datetime.now(timezone.utc)
         timestamp_str = now.isoformat()
 
@@ -60,7 +59,6 @@ async def seed_test_data(uow: UnitOfWork = Depends(UnitOfWork)) -> None:
         await uow.transactions.add(model_202)
 
         await uow.commit()
-        print("Successfully seeded initial test data.")
 
 def _generate_transaction_data(doc_id: str, info_type: int, timestamp_str: str):
     # 3-й уровень

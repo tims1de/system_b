@@ -4,7 +4,7 @@ from app.storage.unit_of_work import UnitOfWork
 from app.services.seed_service import seed_test_data
 from app.crypto.codec import decode_base64
 
-@pytest.mark.asyncio
+@pytest
 async def test_seed_test_data_generates_transactions(uow: UnitOfWork):
     """Тест проверяет, что при пустой базе функция seed_test_data создает 2 транзакции."""
     await seed_test_data(uow)
@@ -28,7 +28,7 @@ async def test_seed_test_data_generates_transactions(uow: UnitOfWork):
     assert found_202, "Transaction 202 was not seeded"
 
 
-@pytest.mark.asyncio
+@pytest
 async def test_seed_test_data_idempotency(uow: UnitOfWork):
     """Тест проверяет, что повторный вызов seed_test_data не создает дубликаты."""
     await seed_test_data(uow)
@@ -38,5 +38,5 @@ async def test_seed_test_data_idempotency(uow: UnitOfWork):
     await seed_test_data(uow)
     
     final_count = len(await uow.transactions.list_all())
-            
+
     assert initial_count == final_count, "Seed data is not idempotent"
