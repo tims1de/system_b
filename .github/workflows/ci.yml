@@ -29,6 +29,18 @@ jobs:
         run: ruff check .
 
       - name: Run Tests
+        env:
+          DB_DIALECT: sqlite
+          DB_DRIVER: aiosqlite
+          DB_NAME: test.db
+          TEST_DB_DIALECT: sqlite
+          TEST_DB_DRIVER: aiosqlite
+          TEST_DB_NAME: test_db.db
+          APP_TITLE: MyTestApp
+          APP_DESCRIPTION: Test Description
+          APP_VERSION: 1.0.0
+          SYSTEM_NAME: SYSTEM_B
+          SIGNER_CERT_NAME: test_cert
         run: pytest
 
   build-docker:

@@ -1,7 +1,7 @@
 import pytest
 from tests.helpers import generate_valid_payload, generate_search_payload
 
-@pytest
+@pytest.mark.asyncio
 async def test_outgoing_messages_success(client):
     """Cоздание транзакции и последующий её поиск через /api/messages/outgoing"""
     # Сначала отправляем транзакцию
@@ -28,7 +28,7 @@ async def test_outgoing_messages_success(client):
     assert "Data" in resp_body
 
 
-@pytest
+@pytest.mark.asyncio
 async def test_outgoing_messages_invalid_signature(client):
     """Проверка ошибки 400 при отправке поиска с невалидной подписью."""
     payload = generate_search_payload(
