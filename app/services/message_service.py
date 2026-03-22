@@ -154,19 +154,18 @@ class MessageService:
                 TransactionOut=tx_model.transaction_out
             )
             
-            # Фильтрация по ReceiverBranch = "SYSTEM_A" для информационных сообщений (Type=9)
+            # Фильтрация по ReceiverBranch = "SYSTEM_A" для информационных сообщений
             if tx_schema.TransactionType == 9:
                 try:
                     msg_json_str = decode_base64(tx_schema.Data)
                     msg_dict = json.loads(msg_json_str)
                     if msg_dict.get("ReceiverBranch") != "SYSTEM_A":
                         continue
-                except:
+                except Exception:
                     pass
             
             processed_transactions.append(tx_schema)
             
-        # Применение пагинации (Limit, Offset)
         paginated_transactions = processed_transactions[search_request.Offset : search_request.Offset + search_request.Limit]
 
         response_payload = TransactionsData(
